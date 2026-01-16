@@ -17,14 +17,6 @@ npm install
 # Lancement du serveur de développement
 npm run dev
 
-# Build pour la production
-npm run build
-
-# Aperçu du build
-npm run preview
-
-# Linting
-npm run lint
 ```
 
 L'application sera accessible sur `http://localhost:5173`
