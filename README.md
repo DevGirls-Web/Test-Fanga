@@ -102,16 +102,13 @@ src/
 - WebSocket pour notifications temps réel
 - Cache Redis (stations fréquemment consultées)
 - Database optimisée (indexes sur status, location)
-- Queue messaging (RabbitMQ) pour opérations async
 ```
 
 #### 2. **Frontend haute performance**
 ```javascript
 // Virtualisation des listes
-- React-window pour tableau/cartes (affiche 50 items max)
-- Lazy loading des détails
-- Code splitting par route
-- Images optimisées (WebP)
+- Proposer des filtres puissants (par statut, ville/quartier, niveau de charge, type de station) et une barre de recherche pour retrouver rapidement une station précise.
+- Ajouter des indicateurs de santé globaux (compteurs de stations OK/en panne, alertes critiques) plutôt que montrer 1 000 items bruts en permanence.
 ```
 
 #### 3. **Gestion d'état distribuée**
@@ -119,8 +116,8 @@ src/
 // Au lieu de tout charger en mémoire
 - Pagination côté serveur
 - Filtres applicables côté backend
-- Cache côté client (React Query/SWR)
-- Rafraîchissement par polling ou WebSocket
+- Introduire des rôles plus fins côté admin (opérateur temps réel, superviseur, technicien terrain) avec des écrans adaptés à chacun pour réduire le bruit d’information.
+- Prévoir une gestion avancée des alertes : seuils configurables, priorisation
 ```
 
 #### 4. **Stratégie de synchronisation temps réel**
@@ -133,83 +130,17 @@ src/
 - Reconnexion automatique avec fallback polling
 ```
 
-**Exemple** :
-```typescript
-// Remplacer Redux par React Query + WebSocket
-const useStationUpdates = () => {
-  const { data: stations } = useQuery(
-    ['stations'],
-    () => fetchStations({ page: 1, limit: 50 }),
-    { 
-      refetchInterval: 30000, // Polling fallback
-      staleTime: 10000 
-    }
-  );
-
-  // WebSocket pour live updates
-  useEffect(() => {
-    const ws = new WebSocket('wss://api.fanga.com/stations');
-    ws.onmessage = (event) => {
-      const update = JSON.parse(event.data);
-      queryClient.setQueryData(['stations'], (old) => 
-        updateStationInList(old, update)
-      );
-    };
-  }, []);
-
-  return stations;
-};
-```
-
 #### 5. **Infrastructure & Monitoring**
-- **CDN** pour assets statiques
-- **Load balancer** avec multiple instances backend
-- **Monitoring** (DataDog/New Relic)
-- **Logging** centralisé (ELK stack)
-- **Alertes** sur dégradation performance
+- Utiliser des outils de monitoring
+- Instaurer des logs permanents pour assurer la traçabilité
+- Instaurer des systèmes d'alertes pour des cas de dégradation graves
 
 #### 6. **Optimisations UI/UX**
 - Dashboard simplifié (vue par région)
-- Drill-down vers détails (lazy load)
-- Filtres intelligents avec auto-complete
-- Agrégations en temps réel (cartes heat)
-- Mode "light" par défaut (moins de ressources)
+- Filtres amélioré avec auto-complete
+- Agrégations en temps réel
+- Mode "light" par défaut
 
-#### 7. **Métriques de performance ciblées**
-```
-- Time to First Paint (TFP) < 1s
-- Time to Interactive (TTI) < 2.5s
-- Cumulative Layout Shift (CLS) < 0.1
-- Requêtes WebSocket latency < 100ms
-```
 
-### Plan de migration
-
-```
-Phase 1 (Semaine 1-2) : Backend WebSocket + API pagination
-Phase 2 (Semaine 3)    : Intégration React Query
-Phase 3 (Semaine 4)    : Virtualisation des listes
-Phase 4 (Semaine 5)    : Monitoring & optimisations
-Phase 5 (Semaine 6)    : Tests de charge (k6/JMeter)
-```
-
-## 📦 Dépendances principales
-
-```json
-{
-  "@reduxjs/toolkit": "^1.9.x",
-  "react": "^18.x",
-  "typescript": "^5.x",
-  "tailwindcss": "^3.x",
-  "lucide-react": "^latest"
-}
-```
-
-## 📝 Licence
-
-MIT
-
----
-
-**Auteur** : Test-Fanga Team  
+**Auteur** : Ruth KOKOU  
 **Dernière mise à jour** : 16 Janvier 2026
