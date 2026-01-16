@@ -1,21 +1,7 @@
 import { createSlice, createSelector } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
-// Types
-export interface Station {
-  id: string;
-  name: string;
-  status: 'active' | 'maintenance';
-  available_batteries: number;
-  total_swaps_today: number;
-}
+import type { Station, StationsState } from '../types/interface';
 
-interface StationsState {
-  stations: Station[];
-  filter: 'all' | 'active' | 'maintenance';
-  sortBy: 'default' | 'batteries_asc' | 'batteries_desc' | 'swaps_asc' | 'swaps_desc';
-}
-
-// Données initiales (vos données mockées)
 const initialState: StationsState = {
   stations: [
     {
@@ -42,6 +28,7 @@ const initialState: StationsState = {
   ],
   filter: 'all',
   sortBy: 'default',
+  selectedStation: null,
 };
 
 const stations = createSlice({
@@ -58,6 +45,47 @@ const stations = createSlice({
       state.sortBy = action.payload;
     },
     
+    // Action pour sélectionner une station
+    setSelectedStation: (state, action: PayloadAction<string | null>) => {
+      if (action.payload === null) {
+        state.selectedStation = null;
+      } else {
+        const found = state.stations.find(s => s.id === action.payload);
+        if (found) {
+          state.selectedStation = found;
+        }
+      }
+    },
+    
+    // Action pour basculer la maintenance
+    toggleMaintenance: (state, action: PayloadAction<string>) => {
+      const station = state.stations.find(s => s.id === action.payload);
+      if (station) {
+        station.status = station.status === 'active' ? 'maintenance' : 'active';
+        // Mettre à jour selectedStation aussi
+        if (state.selectedStation?.id === action.payload) {
+          state.selectedStation = { ...station };
+        }
+      }
+    },
+    
+    // Action pour mettre à jour les métriques
+    updateStationMetrics: (state, action: PayloadAction<{ id: string; batteries?: number; swaps?: number }>) => {
+      const station = state.stations.find(s => s.id === action.payload.id);
+      if (station) {
+        if (action.payload.batteries !== undefined) {
+          station.available_batteries = action.payload.batteries;
+        }
+        if (action.payload.swaps !== undefined) {
+          station.total_swaps_today = action.payload.swaps;
+        }
+        // Mettre à jour selectedStation aussi
+        if (state.selectedStation?.id === action.payload.id) {
+          state.selectedStation = { ...station };
+        }
+      }
+    },
+    
     // Action pour ajouter/mettre à jour une station 
     updateStation: (state, action: PayloadAction<Station>) => {
       const index = state.stations.findIndex(station => station.id === action.payload.id);
@@ -70,7 +98,7 @@ const stations = createSlice({
   },
 });
 
-// Selectors pour récupérer les stations filtrées et triées
+// Selector pour récupérer les stations filtrées et triées
 export const selectFilteredAndSortedStations = createSelector(
   [
     (state: { stations: StationsState }) => state.stations.stations,
@@ -78,13 +106,11 @@ export const selectFilteredAndSortedStations = createSelector(
     (state: { stations: StationsState }) => state.stations.sortBy,
   ],
   (stations, filter, sortBy) => {
-    // Filtrage
     let filteredStations = stations;
     if (filter !== 'all') {
       filteredStations = stations.filter(station => station.status === filter);
     }
     
-    // Tri
     const sortedStations = [...filteredStations];
     switch (sortBy) {
       case 'batteries_asc':
@@ -102,8 +128,18 @@ export const selectFilteredAndSortedStations = createSelector(
   }
 );
 
+// Selector pour récupérer la station sélectionnée
+export const selectSelectedStation = (state: { stations: StationsState }) => state.stations.selectedStation;
+
 // Export des actions
-export const { setFilter, setSortBy, updateStation } = stations.actions;
+export const { 
+  setFilter, 
+  setSortBy, 
+  updateStation,
+  setSelectedStation,
+  toggleMaintenance,
+  updateStationMetrics,
+} = stations.actions;
 
 // Export du reducer
 export default stations.reducer;

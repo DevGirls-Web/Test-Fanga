@@ -1,11 +1,18 @@
 import React, { useState } from 'react';
+import { LayoutList, LayoutGrid } from 'lucide-react';
 import StationsTable from '../components/StationTable';
+import StationCard from '../components/StationCard';
 import StationFilters from '../components/StationFilters';
 import StationSort from '../components/StationTri';
-// import StatsOverview from '';
+import { useAppSelector } from '../app/store';
+import { selectFilteredAndSortedStations } from '../reducer/stations';
+import StationDetailModal from '../components/StationDetails';
 
 const StationsDashboard: React.FC = () => {
   const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
+  
+  // Récupère les stations filtrées et triées
+  const stations = useAppSelector(selectFilteredAndSortedStations);
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-6">
@@ -17,13 +24,12 @@ const StationsDashboard: React.FC = () => {
         </p>
       </div>
 
-      {/* Statistiques rapides */}
-      {/* <StatsOverview /> */}
+      <StationDetailModal />
 
       {/* Contrôles */}
       <div className="mb-6 bg-white rounded-xl shadow p-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center space-x-4">
+          <div className="flex flex-col md:flex-row md:items-end gap-4">
             {/* Filtres */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -44,17 +50,27 @@ const StationsDashboard: React.FC = () => {
           {/* Mode d'affichage */}
           <div className="flex items-center space-x-2">
             <span className="text-sm font-medium text-gray-700">Affichage :</span>
-            <div className="flex border border-gray-300 rounded-lg overflow-hidden">
+            <div className="flex gap-2 bg-gray-100 rounded-lg p-1">
               <button
                 onClick={() => setViewMode('table')}
-                className={`px-3 py-1 text-sm ${viewMode === 'table' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+                className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors text-sm font-medium ${
+                  viewMode === 'table'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
               >
+                <LayoutList className="w-4 h-4" />
                 Tableau
               </button>
               <button
                 onClick={() => setViewMode('cards')}
-                className={`px-3 py-1 text-sm ${viewMode === 'cards' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+                className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors text-sm font-medium ${
+                  viewMode === 'cards'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
               >
+                <LayoutGrid className="w-4 h-4" />
                 Cartes
               </button>
             </div>
@@ -63,14 +79,26 @@ const StationsDashboard: React.FC = () => {
       </div>
 
       {/* Affichage des stations */}
-      <div className="bg-white rounded-xl shadow overflow-hidden">
+      <div className="rounded-xl shadow overflow-hidden">
         {viewMode === 'table' ? (
-          <StationsTable />
+          <div className="bg-white">
+            <StationsTable />
+          </div>
         ) : (
-          <div className="p-4">
-            <p className="text-gray-500 text-center py-8">
-              Version cartes - À implémenter
-            </p>
+          <div className="p-6">
+            {stations.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-gray-500 text-lg">
+                  Aucune station ne correspond aux filtres sélectionnés
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {stations.map((station) => (
+                  <StationCard key={station.id} station={station} />
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -78,7 +106,9 @@ const StationsDashboard: React.FC = () => {
       {/* Info */}
       <div className="mt-6 text-sm text-gray-500">
         <p>
-          <span className="font-medium">{viewMode === 'table' ? '3 stations' : '3 cartes'}</span> affichées
+          <span className="font-medium">{stations.length} station{stations.length > 1 ? 's' : ''}</span> affichée{stations.length > 1 ? 's' : ''}
+          {viewMode === 'cards' && ' en mode cartes'}
+          {viewMode === 'table' && ' en mode tableau'}
         </p>
       </div>
     </div>

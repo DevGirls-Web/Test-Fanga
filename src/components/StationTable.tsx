@@ -1,10 +1,15 @@
 import React from 'react';
-import { useAppSelector } from '../app/store';
-import { selectFilteredAndSortedStations } from '../reducer/stations';
+import { useAppDispatch, useAppSelector } from '../app/store';
+import { selectFilteredAndSortedStations, setSelectedStation } from '../reducer/stations';
 import StatusBadge from '../components/StatusBadge';
 
 const StationsTable: React.FC = () => {
+  const dispatch = useAppDispatch();
   const stations = useAppSelector(selectFilteredAndSortedStations);
+
+  const handleViewDetails = (stationId: string) => {
+    dispatch(setSelectedStation(stationId));
+  };
 
   return (
     <div className="overflow-x-auto">
@@ -73,7 +78,10 @@ const StationsTable: React.FC = () => {
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                  <button className="text-blue-600 hover:text-blue-900 mr-3">
+                  <button 
+                    onClick={() => handleViewDetails(station.id)}
+                    className="text-blue-600 hover:text-blue-900 mr-3"
+                  >
                     Détails
                   </button>
                   <button className="text-gray-600 hover:text-gray-900">
